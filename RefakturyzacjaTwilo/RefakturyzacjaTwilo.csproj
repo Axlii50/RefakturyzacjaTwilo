@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Reference Include="Allegro Api">
-      <HintPath>..\..\PIOTR-API\Allegro Api\bin\Debug\net6.0\Allegro Api.dll</HintPath>
+      <HintPath>..\..\..\Arek\Dla pana piotra\Allegro Api\Allegro Api\bin\Debug\net6.0\Allegro Api.dll</HintPath>
     </Reference>
   </ItemGroup>
 
