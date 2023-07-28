@@ -19,9 +19,7 @@ namespace RefakturyzacjaTwilo
         {
 			refreshToken = File.ReadAllText("RefreshToken.txt");
 
-            _allegroApi = new AllegroApi(ClientID, ClientSecret, refreshToken);
-
-            _allegroApi.RefreshTokenEvent += _allegroApi_RefreshTokenEvent;
+            _allegroApi = new AllegroApi(ClientID, ClientSecret, refreshToken, _allegroApi_RefreshTokenEvent);
 
             /*
 			Allegro_Api.Models.VerificationULRModel t = AllegroApi.Authenticate().Result;
@@ -54,6 +52,7 @@ namespace RefakturyzacjaTwilo
 
         private static void _allegroApi_RefreshTokenEvent()
         {
+			System.Diagnostics.Debug.WriteLine(_allegroApi.RefreshToken);
             File.WriteAllText("RefreshToken.txt",_allegroApi.RefreshToken);
         }
     }

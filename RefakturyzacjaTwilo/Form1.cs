@@ -19,7 +19,7 @@ namespace RefakturyzacjaTwilo
 			//DateTime input2 = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
 
 			//download orders from given date
-			List<CheckOutForm> Orders = await Program.AllegroApi.GetOrders(input);
+			List<CheckOutForm> Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.SENT);
 
 			string length = Orders.Count.ToString();
 			label2.Text = length;
