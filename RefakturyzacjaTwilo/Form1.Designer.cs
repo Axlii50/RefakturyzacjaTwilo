@@ -32,16 +32,17 @@
 			button1 = new Button();
 			label1 = new Label();
 			label2 = new Label();
+			linkLabel1 = new LinkLabel();
 			SuspendLayout();
 			// 
 			// dateTimePicker1
 			// 
+			dateTimePicker1.CustomFormat = "";
 			dateTimePicker1.Location = new Point(46, 35);
 			dateTimePicker1.MinDate = new DateTime(1960, 1, 1, 0, 0, 0, 0);
 			dateTimePicker1.Name = "dateTimePicker1";
 			dateTimePicker1.Size = new Size(200, 23);
 			dateTimePicker1.TabIndex = 0;
-			dateTimePicker1.Value = new DateTime(2023, 7, 28, 15, 55, 36, 0);
 			// 
 			// button1
 			// 
@@ -72,11 +73,24 @@
 			label2.TabIndex = 3;
 			label2.Text = "<placeholder>";
 			// 
+			// linkLabel1
+			// 
+			linkLabel1.AutoSize = true;
+			linkLabel1.Location = new Point(46, 257);
+			linkLabel1.Name = "linkLabel1";
+			linkLabel1.Size = new Size(60, 15);
+			linkLabel1.TabIndex = 4;
+			linkLabel1.TabStop = true;
+			linkLabel1.Text = "linkLabel1";
+			linkLabel1.Visible = false;
+			linkLabel1.LinkClicked += linkLabel1_LinkClicked;
+			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(548, 320);
+			Controls.Add(linkLabel1);
 			Controls.Add(label2);
 			Controls.Add(label1);
 			Controls.Add(button1);
@@ -93,5 +107,6 @@
 		private Button button1;
 		private Label label1;
 		private Label label2;
+		private LinkLabel linkLabel1;
 	}
 }

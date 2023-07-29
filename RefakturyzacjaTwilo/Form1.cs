@@ -19,26 +19,41 @@ namespace RefakturyzacjaTwilo
 			//DateTime input2 = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
 
 			//download orders from given date
-			List<CheckOutForm> Orders = await Program.AllegroApi.GetOrders(input);
+			List<CheckOutForm> Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.SENT);
 
 			string length = Orders.Count.ToString();
 			label2.Text = length;
 
 
-			string createText = "test";
-			string path = @"Orders\orders.txt";
+			string path = @"Orders\orders" + DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss") + ".txt";
 
 			string content = string.Empty;
-            foreach (var order in Orders)
-            {
-                foreach (var item in order.lineItems)
-                {
+			foreach (var order in Orders)
+			{
+				foreach (var item in order.lineItems)
+				{
 					content += item.offer.name;
-                }
-            }
+					content += ";";
+					content += item.originalPrice;
+					content += ";";
+					content += item.boughtAt;
+					content += ";";
+					content += item.offer.external;
+					content += '\n';
+				}
+			}
 			System.Diagnostics.Debug.WriteLine(content);
 
 			File.WriteAllText(path, content);
+
+			string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
+			linkLabel1.Text = dirPath;
+			linkLabel1.Visible = true;
+		}
+
+		private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Process.Start("explorer.exe", @"Orders");
 		}
 	}
 }
