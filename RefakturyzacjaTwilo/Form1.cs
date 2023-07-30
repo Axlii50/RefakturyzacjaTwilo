@@ -24,8 +24,8 @@ namespace RefakturyzacjaTwilo
 			string length = Orders.Count.ToString();
 			label2.Text = length;
 
-
-			string path = @"Orders\orders" + DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss") + ".txt";
+			string timestamp = DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss");
+			string path = @"Orders\orders" + timestamp + ".txt";
 
 			string content = string.Empty;
 			foreach (var order in Orders)
@@ -47,6 +47,10 @@ namespace RefakturyzacjaTwilo
 			File.WriteAllText(path, content);
 
 			string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
+			label3.Visible = true;
+			label4.Text = "orders" + timestamp + ".txt";
+			label4.Visible = true;
+			label5.Visible = true;
 			linkLabel1.Text = dirPath;
 			linkLabel1.Visible = true;
 		}
