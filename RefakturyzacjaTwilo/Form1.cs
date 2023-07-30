@@ -3,6 +3,9 @@ using Allegro_Api.Models.Order;
 using Allegro_Api.Models.Order.checkoutform;
 using System.Diagnostics;
 using System.IO;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using static System.Windows.Forms.LinkLabel;
 
 namespace RefakturyzacjaTwilo
 {
@@ -31,7 +34,8 @@ namespace RefakturyzacjaTwilo
 			label2.Text = length;
 
 			string timestamp = DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss");
-			string path = @"Orders\orders" + timestamp + ".txt";
+			string ending = comboBox1.SelectedItem.ToString();
+			string path = @"Orders\orders" + timestamp + ending;
 
 			string content = string.Empty;
 			foreach (var order in Orders)
@@ -48,13 +52,39 @@ namespace RefakturyzacjaTwilo
 					content += '\n';
 				}
 			}
-			System.Diagnostics.Debug.WriteLine(content);
+			System.Diagnostics.Debug.WriteLine(content); // just for check if authorization works
 
-			File.WriteAllText(path, content);
+			string selectedFromDropDownList = comboBox1.SelectedItem.ToString();
+			if (selectedFromDropDownList == ".txt")
+				File.WriteAllText(path, content);
+			else if(selectedFromDropDownList == ".xlsx")
+			{
+				ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+				ExcelPackage excel = new ExcelPackage();
+				var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
+
+				string[] lines = content.Split('\n');
+
+				for (int i = 0; i < lines.Length - 1; ++i)
+				{
+					string[] cols = lines[i].Split(';');
+					for (int j = 0; j < 4; ++j)
+					{
+						workSheet.Cells[i+1, j+1].Value = cols[j];
+					}
+				}
+
+				FileStream objFileStrm = File.Create(path);
+				objFileStrm.Close();
+
+				File.WriteAllBytes(path, excel.GetAsByteArray());
+
+				excel.Dispose();
+			}
 
 			string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
 			label3.Visible = true;
-			label4.Text = "orders" + timestamp + ".txt";
+			label4.Text = "orders" + timestamp + comboBox1.SelectedItem.ToString();
 			label4.Visible = true;
 			label5.Visible = true;
 			linkLabel1.Text = dirPath;
