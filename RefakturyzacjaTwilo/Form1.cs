@@ -13,13 +13,19 @@ namespace RefakturyzacjaTwilo
 			InitializeComponent();
 		}
 
+
+		private void Form1_Load(object sender, EventArgs e)
+		{
+			comboBox1.SelectedIndex = 1;
+		}
 		private async void button1_Click(object sender, EventArgs e)
 		{
 			DateTime input = this.dateTimePicker1.Value;
 			//DateTime input2 = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
 
 			//download orders from given date
-			List<CheckOutForm> Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.SENT);
+			List<CheckOutForm> Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.PICKED_UP);
+			//List<CheckOutForm> Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.SENT);
 
 			string length = Orders.Count.ToString();
 			label2.Text = length;

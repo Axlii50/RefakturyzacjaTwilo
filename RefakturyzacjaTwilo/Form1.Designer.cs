@@ -36,11 +36,13 @@
 			label3 = new Label();
 			label4 = new Label();
 			label5 = new Label();
+			comboBox1 = new ComboBox();
 			SuspendLayout();
 			// 
 			// dateTimePicker1
 			// 
 			dateTimePicker1.CustomFormat = "";
+			dateTimePicker1.Format = DateTimePickerFormat.Short;
 			dateTimePicker1.Location = new Point(46, 35);
 			dateTimePicker1.MinDate = new DateTime(1960, 1, 1, 0, 0, 0, 0);
 			dateTimePicker1.Name = "dateTimePicker1";
@@ -49,9 +51,9 @@
 			// 
 			// button1
 			// 
-			button1.Location = new Point(288, 35);
+			button1.Location = new Point(291, 62);
 			button1.Name = "button1";
-			button1.Size = new Size(97, 23);
+			button1.Size = new Size(121, 23);
 			button1.TabIndex = 1;
 			button1.Text = "Pobierz";
 			button1.UseVisualStyleBackColor = true;
@@ -60,7 +62,7 @@
 			// label1
 			// 
 			label1.AutoSize = true;
-			label1.Location = new Point(288, 88);
+			label1.Location = new Point(291, 98);
 			label1.Name = "label1";
 			label1.Size = new Size(100, 15);
 			label1.TabIndex = 2;
@@ -70,7 +72,7 @@
 			// 
 			label2.AutoSize = true;
 			label2.Font = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point);
-			label2.Location = new Point(288, 112);
+			label2.Location = new Point(291, 122);
 			label2.Name = "label2";
 			label2.Size = new Size(84, 15);
 			label2.TabIndex = 3;
@@ -118,12 +120,23 @@
 			label5.Text = "Ścieżka do folderu z plikiem:";
 			label5.Visible = false;
 			// 
+			// comboBox1
+			// 
+			comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+			comboBox1.FormattingEnabled = true;
+			comboBox1.Items.AddRange(new object[] { ".txt", ".xlsx" });
+			comboBox1.Location = new Point(291, 35);
+			comboBox1.Name = "comboBox1";
+			comboBox1.Size = new Size(121, 23);
+			comboBox1.TabIndex = 8;
+			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			AutoSize = true;
 			ClientSize = new Size(548, 267);
+			Controls.Add(comboBox1);
 			Controls.Add(label5);
 			Controls.Add(label4);
 			Controls.Add(label3);
@@ -134,6 +147,7 @@
 			Controls.Add(dateTimePicker1);
 			Name = "Form1";
 			Text = "Form1";
+			Load += Form1_Load;
 			ResumeLayout(false);
 			PerformLayout();
 		}
@@ -148,5 +162,6 @@
 		private Label label3;
 		private Label label4;
 		private Label label5;
+		private ComboBox comboBox1;
 	}
 }
