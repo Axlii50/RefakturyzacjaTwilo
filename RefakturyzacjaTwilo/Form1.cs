@@ -43,7 +43,7 @@ namespace RefakturyzacjaTwilo
             }
 
             #region NumberOfOrders
-            string length;
+            string length = string.Empty;
             // display number of Orders
             if (Orders is not null)
             {
