@@ -16,8 +16,65 @@ namespace RefakturyzacjaTwilo
             InitializeComponent();
         }
 
+        private async Task<List<CheckOutForm>?> DownloadOrdersAsync(DateTime input)
+        {
+			List<CheckOutForm>? Orders = null;
 
-        private void Form1_Load(object sender, EventArgs e)
+			try
+			{
+				Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.PICKED_UP);
+				Orders.AddRange(await Program._allegroApi.GetOrders(input, OrderStatusType.SENT));
+                return Orders;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Wyst¹pi³ b³¹d: " + ex.Message, "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+			}
+		}
+
+        private void GenerateXlsx(string path, string content, string timestamp)
+        {
+			// Excel license
+			// WARNING: check if the specified license is correct
+			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+			// create excel workbook
+			using (ExcelPackage excel = new ExcelPackage())
+			{
+
+				// name of the sheet
+				var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
+
+				string[] lines = content.Split('\n');
+				string[]? cols = null;
+
+				for (int i = 0; i < lines.Length - 1; ++i)
+				{
+					cols = lines[i].Split('\t');
+					for (int j = 0; j < cols.Length; ++j)
+					{
+						workSheet.Cells[i + 1, j + 1].Value = cols[j];
+					}
+				}
+
+				for (int i = 0; i < cols.Length; ++i)
+				{
+					workSheet.Column(i + 1).AutoFit();
+				}
+
+				excel.SaveAs(path);
+
+				// create excel file on physical disk
+				//FileStream objFileStrm = File.Create(path);
+				//objFileStrm.Close();
+				//// IMPORTANT: write content to excel file
+				//File.WriteAllBytes(path, excel.GetAsByteArray());
+			}
+		}
+
+
+
+		private void Form1_Load(object sender, EventArgs e)
         {
             // set default value in drop-down list (comboBox) to ".xslx"
             comboBox1.SelectedIndex = 1;
@@ -26,21 +83,12 @@ namespace RefakturyzacjaTwilo
         {
             button1.Enabled = false;
 
-            //DateTime input = this.dateTimePicker1.Value;
+            // time format must be in UTC for allegro
             DateTime input = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
 
-            // download orders since given date until now
-            // specify that Orders may be null, in case there have been literally no Orders for some time
-            List<CheckOutForm>? Orders = null;
-            try
-            {
-                Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.PICKED_UP);
-                Orders.AddRange(await Program._allegroApi.GetOrders(input, OrderStatusType.SENT));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Wyst¹pi³ b³¹d: " + ex.Message, "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+			// download orders since given date until now
+			// specify that Orders may be null, in case there have been literally no Orders for some time
+			List<CheckOutForm>? Orders = await DownloadOrdersAsync(input);
 
             #region NumberOfOrders
             string length = string.Empty;
@@ -70,12 +118,13 @@ namespace RefakturyzacjaTwilo
                 foreach (var item in order.lineItems)
                 {
                     content += item.offer.name;
-                    content += ";";
-                    content += item.originalPrice;
-                    content += ";";
+                    content += "\t";
+                    content += item.originalPrice.amount;
+                    content += "\t";
+                    // godzina jest o 2 godziny do ty³u, do naprawy albo dodaæ komunikat
                     content += item.boughtAt;
-                    content += ";";
-                    content += item.offer.external;
+                    content += "\t";
+                    content += item.offer.external?.id;
                     content += '\n';
                     System.Diagnostics.Debug.WriteLine(item.offer.external);
                 }
@@ -84,37 +133,15 @@ namespace RefakturyzacjaTwilo
             System.Diagnostics.Debug.WriteLine(content); // just for check if authorization works
 
             // checking file extension and acting on it
-            if (ending == ".txt")
-                File.WriteAllText(path, content);
-            else if (ending == ".xlsx")
+            switch (ending)
             {
-                // Excel license
-                // WARNING: check if the specified license is correct
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                // create excel workbook
-                using ExcelPackage excel = new ExcelPackage();
-                // name of the sheet
-                var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
-
-                string[] lines = content.Split('\n');
-
-                for (int i = 0; i < lines.Length - 1; ++i)
-                {
-                    string[] cols = lines[i].Split(';');
-                    for (int j = 0; j < cols.Length; ++j)
-                    {
-                        workSheet.Cells[i + 1, j + 1].Value = cols[j];
-                    }
-                }
-
-                excel.SaveAs(path);
-
-                // create excel file on physical disk
-                //FileStream objFileStrm = File.Create(path);
-                //objFileStrm.Close();
-                //// IMPORTANT: write content to excel file
-                //File.WriteAllBytes(path, excel.GetAsByteArray());
-            }
+                case ".txt":
+                    File.WriteAllText(path, content);
+                    break;
+                case ".xlsx":
+                    GenerateXlsx(path, content, string timestamp);
+				    break;
+			}
 
             string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
             label3.Visible = true;
@@ -129,7 +156,7 @@ namespace RefakturyzacjaTwilo
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             // open folder Orders (in folder with .exe project file) in Windows Explorer
-            Process.Start("explorer.exe", @"Orders");
+            Process.Start("explorer.exe", "Orders");
         }
     }
 }
