@@ -24,10 +24,12 @@ namespace RefakturyzacjaTwilo
 		}
 		private async void button1_Click(object sender, EventArgs e)
 		{
-			DateTime input = this.dateTimePicker1.Value;
-			//DateTime input2 = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
+			button1.Enabled = false;
 
-			//download orders since given date until now
+			DateTime input = this.dateTimePicker1.Value;
+			// DateTime input2 = new DateTime(this.dateTimePicker1.Value.Ticks, DateTimeKind.Utc);
+
+			// download orders since given date until now
 			// specify that Orders may be null, in case there have been literally no Orders for some time
 			List<CheckOutForm>? Orders = null;
 			try
@@ -40,9 +42,22 @@ namespace RefakturyzacjaTwilo
 				MessageBox.Show("Wyst¹pi³ b³¹d: " + ex.Message, "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 
-			string length = Orders.Count.ToString();
+			#region NumberOfOrders
+			string length;
+			// display number of Orders
+			if (Orders is not null)
+			{
+				length = Orders.Count.ToString();
+			}
+			else
+			{
+				MessageBox.Show("Od dnia " + input + " nie zosta³o z³o¿one ¿adne zamówienie.", "Informacja", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+
 			label2.Text = length;
 			label2.Font = new Font("Segoe UI", Form1.DefaultFont.Size, FontStyle.Regular);
+			#endregion
 
 			//set date format
 			string timestamp = DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss");
@@ -62,8 +77,10 @@ namespace RefakturyzacjaTwilo
 					content += ";";
 					content += item.offer.external;
 					content += '\n';
+					System.Diagnostics.Debug.WriteLine(item.offer.external);
 				}
 			}
+
 			System.Diagnostics.Debug.WriteLine(content); // just for check if authorization works
 
 			// checking file extension and acting on it
@@ -71,7 +88,7 @@ namespace RefakturyzacjaTwilo
 				File.WriteAllText(path, content);
 			else if (ending == ".xlsx")
 			{
-				// IMPORTANT: excel license
+				// Excel license
 				// WARNING: check if the specified license is correct
 				ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 				// create excel workbook
@@ -108,6 +125,7 @@ namespace RefakturyzacjaTwilo
 			label5.Visible = true;
 			linkLabel1.Text = dirPath;
 			linkLabel1.Visible = true;
+			button1.Enabled = true;
 		}
 
 		private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
