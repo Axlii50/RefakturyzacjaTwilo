@@ -6,7 +6,6 @@ using System.IO;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using static System.Windows.Forms.LinkLabel;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace RefakturyzacjaTwilo
 {
@@ -20,6 +19,7 @@ namespace RefakturyzacjaTwilo
         private async Task<List<CheckOutForm>?> DownloadOrdersAsync(DateTime input)
         {
 			List<CheckOutForm>? Orders = null;
+            //List<CheckOutForm> Orders = new List<CheckOutForm>;
 
 			try
 			{
@@ -41,12 +41,13 @@ namespace RefakturyzacjaTwilo
 			{
 				foreach (var item in order.lineItems)
 				{
+					DateTime intermediary = DateTime.Parse(item.boughtAt);
+
 					content += item.offer.name;
 					content += "\t";
 					content += item.originalPrice.amount;
 					content += "\t";
-					// godzina jest o 2 godziny do tylu, do naprawy albo dodac komunikat
-					content += item.boughtAt;
+					content += intermediary;
 					content += "\t";
 					content += item.offer.external?.id;
 					content += '\n';
@@ -76,6 +77,11 @@ namespace RefakturyzacjaTwilo
 				{
 					foreach (var item in order.lineItems)
 					{
+                        // IMPORTANT: when parsing, DateTime converts dates to timezone of the computer running the app
+                        DateTime intermediary = DateTime.Parse(item.boughtAt);
+
+                        // System.Diagnostics.Debug.WriteLine(intermediary);
+
 						workSheet.Cells[row, 1].Value = item.offer.name;
 						workSheet.Cells[row, 2].Value = item.originalPrice.amount;
 						workSheet.Cells[row, 3].Value = item.boughtAt;
@@ -135,7 +141,7 @@ namespace RefakturyzacjaTwilo
 
             //set date format
             string timestamp = DateTime.Now.ToString("--yyyy-MM-dd--HH-mm-ss");
-            string ending = comboBox1.SelectedItem.ToString();
+            string ending = comboBox1.SelectedItem.ToString()!;
             string path = @"Orders\orders" + timestamp + ending;
 
             // checking file extension and generating corresponding file
