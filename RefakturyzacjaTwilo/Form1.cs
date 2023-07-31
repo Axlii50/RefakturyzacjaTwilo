@@ -6,6 +6,7 @@ using System.IO;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using static System.Windows.Forms.LinkLabel;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace RefakturyzacjaTwilo
 {
@@ -33,7 +34,30 @@ namespace RefakturyzacjaTwilo
 			}
 		}
 
-        private void GenerateXlsx(string path, string content, string timestamp)
+        private void GenerateTxt(ref List<CheckOutForm>? Orders, string path)
+        {
+			string content = string.Empty;
+			foreach (var order in Orders)
+			{
+				foreach (var item in order.lineItems)
+				{
+					content += item.offer.name;
+					content += "\t";
+					content += item.originalPrice.amount;
+					content += "\t";
+					// godzina jest o 2 godziny do tylu, do naprawy albo dodac komunikat
+					content += item.boughtAt;
+					content += "\t";
+					content += item.offer.external?.id;
+					content += '\n';
+					System.Diagnostics.Debug.WriteLine(item.offer.external);
+				}
+			}
+
+            File.WriteAllText(path, content);
+		}
+
+        private void GenerateXlsx(ref List<CheckOutForm>? Orders, string path, string timestamp)
         {
 			// Excel license
 			// WARNING: check if the specified license is correct
@@ -45,33 +69,35 @@ namespace RefakturyzacjaTwilo
 				// name of the sheet
 				var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
 
-				string[] lines = content.Split('\n');
-				string[]? cols = null;
-
-				for (int i = 0; i < lines.Length - 1; ++i)
+                // IMPORTANT: const number of columns
+				const int NoOfColumns = 4;
+				int row = 1;
+				foreach (var order in Orders)
 				{
-					cols = lines[i].Split('\t');
-					for (int j = 0; j < cols.Length; ++j)
+					foreach (var item in order.lineItems)
 					{
-						workSheet.Cells[i + 1, j + 1].Value = cols[j];
+						workSheet.Cells[row, 1].Value = item.offer.name;
+						workSheet.Cells[row, 2].Value = item.originalPrice.amount;
+						workSheet.Cells[row, 3].Value = item.boughtAt;
+						workSheet.Cells[row, 4].Value = item.offer.external?.id;
 					}
+					++row;
 				}
 
-				for (int i = 0; i < cols?.Length; ++i)
+				for (int i = 0; i < NoOfColumns; ++i)
 				{
 					workSheet.Column(i + 1).AutoFit();
 				}
 
 				excel.SaveAs(path);
 
-				// create excel file on physical disk
-				//FileStream objFileStrm = File.Create(path);
-				//objFileStrm.Close();
-				//// IMPORTANT: write content to excel file
-				//File.WriteAllBytes(path, excel.GetAsByteArray());
+                // create excel file on physical disk
+                //FileStream objFileStrm = File.Create(path);
+                //objFileStrm.Close();
+                //// IMPORTANT: write content to excel file
+                //File.WriteAllBytes(path, excel.GetAsByteArray());
 			}
 		}
-
 
 
 		private void Form1_Load(object sender, EventArgs e)
@@ -112,37 +138,18 @@ namespace RefakturyzacjaTwilo
             string ending = comboBox1.SelectedItem.ToString();
             string path = @"Orders\orders" + timestamp + ending;
 
-            string content = string.Empty;
-            foreach (var order in Orders)
-            {
-                foreach (var item in order.lineItems)
-                {
-                    content += item.offer.name;
-                    content += "\t";
-                    content += item.originalPrice.amount;
-                    content += "\t";
-                    // godzina jest o 2 godziny do ty³u, do naprawy albo dodaæ komunikat
-                    content += item.boughtAt;
-                    content += "\t";
-                    content += item.offer.external?.id;
-                    content += '\n';
-                    System.Diagnostics.Debug.WriteLine(item.offer.external);
-                }
-            }
-
-            System.Diagnostics.Debug.WriteLine(content); // just for check if authorization works
-
-            // checking file extension and acting on it
+            // checking file extension and generating corresponding file
             switch (ending)
             {
                 case ".txt":
-                    File.WriteAllText(path, content);
-                    break;
+					GenerateTxt(ref Orders, path);
+					break;
                 case ".xlsx":
-                    GenerateXlsx(path, content, timestamp);
+                    GenerateXlsx(ref Orders, path, timestamp);
 				    break;
 			}
 
+            // displaying everything and visual settings
             string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
             label3.Visible = true;
             label4.Text = "orders" + timestamp + ending;
