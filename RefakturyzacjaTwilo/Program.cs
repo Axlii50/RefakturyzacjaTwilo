@@ -3,11 +3,11 @@ using System.Diagnostics;
 
 namespace RefakturyzacjaTwilo
 {
-    internal static class Program
-    {
+	internal static class Program
+	{
 		static string ClientSecret = "aKgn8GbxJqghLVvqvYpM3Bdlb5eQmCdx6jm2KBybsmSNEfYZtnuHCemwLa5xOvde";
 		static string ClientID = "0292044ee78a47f2a7f315ece84edfe5";
-		
+
 		// refresh token wazny przez 3 miesiace of 28.07.2023
 		static string refreshToken = "";
 
@@ -16,8 +16,8 @@ namespace RefakturyzacjaTwilo
 		///  The main entry point for the application.
 		/// </summary>
 		[STAThread]
-        static void Main()
-        {
+		static void Main()
+		{
 			if (File.Exists("RefreshToken.txt"))
 			{
 				refreshToken = File.ReadAllText("RefreshToken.txt");
@@ -50,13 +50,13 @@ namespace RefakturyzacjaTwilo
 			// To customize application configuration such as set high DPI settings or default font,
 			// see https://aka.ms/applicationconfiguration.
 			ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
-        }
+			Application.Run(new Form1());
+		}
 
-        private static void _allegroApi_RefreshTokenEvent()
-        {
+		private static void _allegroApi_RefreshTokenEvent()
+		{
 			System.Diagnostics.Debug.WriteLine(_allegroApi.RefreshToken);
-            File.WriteAllText("RefreshToken.txt",_allegroApi.RefreshToken);
-        }
-    }
+			File.WriteAllText("RefreshToken.txt", _allegroApi.RefreshToken);
+		}
+	}
 }
