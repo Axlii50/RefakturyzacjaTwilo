@@ -70,7 +70,6 @@ namespace RefakturyzacjaTwilo
                     System.Diagnostics.Debug.WriteLine(item.offer.external);
                 }
             }
-
             File.WriteAllText(path, content);
         }
 
@@ -82,7 +81,6 @@ namespace RefakturyzacjaTwilo
             // create excel workbook
             using (ExcelPackage excel = new ExcelPackage()) // used with classes implementing IDisposable
             {
-
                 // name of the sheet
                 var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
 
@@ -116,13 +114,12 @@ namespace RefakturyzacjaTwilo
             }
         }
 
-
         private void Form1_Load(object sender, EventArgs e)
         {
             // set default value in drop-down list (comboBox) to ".xslx"
             comboBox1.SelectedIndex = 1;
 
-            SetDateTimePicker1To00_00_00();
+            //SetDateTimePicker1To00_00_00();
         }
         private async void button1_Click(object sender, EventArgs e)
         {

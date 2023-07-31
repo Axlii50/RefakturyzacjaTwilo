@@ -54,7 +54,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(271, 41);
+            button1.Location = new Point(327, 41);
             button1.Name = "button1";
             button1.Size = new Size(121, 23);
             button1.TabIndex = 1;
@@ -65,7 +65,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(271, 77);
+            label1.Location = new Point(327, 77);
             label1.Name = "label1";
             label1.Size = new Size(100, 15);
             label1.TabIndex = 2;
@@ -75,7 +75,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point);
-            label2.Location = new Point(377, 77);
+            label2.Location = new Point(433, 77);
             label2.Name = "label2";
             label2.Size = new Size(84, 15);
             label2.TabIndex = 3;
@@ -84,7 +84,7 @@
             // linkLabel1
             // 
             linkLabel1.AutoSize = true;
-            linkLabel1.Location = new Point(12, 92);
+            linkLabel1.Location = new Point(12, 106);
             linkLabel1.Name = "linkLabel1";
             linkLabel1.Size = new Size(60, 15);
             linkLabel1.TabIndex = 4;
@@ -106,7 +106,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(162, 49);
+            label4.Location = new Point(132, 49);
             label4.Name = "label4";
             label4.Size = new Size(38, 15);
             label4.TabIndex = 6;
@@ -128,7 +128,7 @@
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1.FormattingEnabled = true;
             comboBox1.Items.AddRange(new object[] { ".txt", ".xlsx" });
-            comboBox1.Location = new Point(271, 14);
+            comboBox1.Location = new Point(327, 14);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 8;
@@ -138,7 +138,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSize = true;
-            ClientSize = new Size(497, 117);
+            ClientSize = new Size(497, 130);
             Controls.Add(comboBox1);
             Controls.Add(label5);
             Controls.Add(label4);
