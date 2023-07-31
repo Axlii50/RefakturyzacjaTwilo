@@ -57,7 +57,7 @@ namespace RefakturyzacjaTwilo
 					}
 				}
 
-				for (int i = 0; i < cols.Length; ++i)
+				for (int i = 0; i < cols?.Length; ++i)
 				{
 					workSheet.Column(i + 1).AutoFit();
 				}
@@ -139,7 +139,7 @@ namespace RefakturyzacjaTwilo
                     File.WriteAllText(path, content);
                     break;
                 case ".xlsx":
-                    GenerateXlsx(path, content, string timestamp);
+                    GenerateXlsx(path, content, timestamp);
 				    break;
 			}
 
