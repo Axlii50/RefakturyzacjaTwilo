@@ -1,24 +1,41 @@
 using Allegro_Api;
+using AteneumAPI;
+using Libre_API;
 using System.Diagnostics;
 
 namespace RefakturyzacjaTwilo
 {
 	internal static class Program
 	{
-		static string ClientSecret = "aKgn8GbxJqghLVvqvYpM3Bdlb5eQmCdx6jm2KBybsmSNEfYZtnuHCemwLa5xOvde";
-		static string ClientID = "0292044ee78a47f2a7f315ece84edfe5";
+		static string ClientSecret = "PjOcDyDm4ZdjOhrdgOqQQMCY6Row2DWJhnwjjPRAwdQcKLCqpV0fbSjrZ2drQnvf";
+		static string ClientID = "31b0bc689e414c608d7098aa3966f8f4";
 
 		// refresh token wazny przez 3 miesiace of 28.07.2023
 		static string refreshToken = "";
 
 		public static AllegroApi _allegroApi = null;
-		/// <summary>
-		///  The main entry point for the application.
-		/// </summary>
-		[STAThread]
+
+        public static LibreApi LibreApi { get; private set; }
+        public static AteneumApi AteneumApi { get; private set; }
+
+        /// <summary>
+        ///  The main entry point for the application.
+        /// </summary>
+        [STAThread]
 		static void Main()
 		{
-			if (File.Exists("RefreshToken.txt"))
+            string LibreLogin = "38103_2345";
+            string LibrePassword = "38103";
+
+            LibreApi = new LibreApi(LibrePassword, LibreLogin);
+
+            string AteneumLogin = "kempo_warszawa";
+            string AteneumPassword = "6KsSGWT6dhD9r8Xvvr";
+
+            AteneumApi = new AteneumApi(AteneumLogin, AteneumPassword);
+
+
+            if (File.Exists("RefreshToken.txt") && true)
 			{
 				refreshToken = File.ReadAllText("RefreshToken.txt");
 
@@ -26,7 +43,8 @@ namespace RefakturyzacjaTwilo
 			}
 			else
 			{
-				Allegro_Api.Models.VerificationULRModel t = _allegroApi.Authenticate().Result;
+                _allegroApi = new AllegroApi(ClientID, ClientSecret, _allegroApi_RefreshTokenEvent);
+                Allegro_Api.Models.VerificationULRModel t = _allegroApi.Authenticate().Result;
 
 				ProcessStartInfo sInfo = new ProcessStartInfo(t.verification_uri_complete);
 				sInfo.UseShellExecute = true;

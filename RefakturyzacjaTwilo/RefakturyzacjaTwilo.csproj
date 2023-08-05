@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
     <PackageReference Include="EPPlus" Version="6.2.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
@@ -16,6 +17,12 @@
   <ItemGroup>
     <Reference Include="Allegro Api">
       <HintPath>..\..\PIOTR-API\Allegro Api\bin\Debug\net6.0\Allegro Api.dll</HintPath>
+    </Reference>
+    <Reference Include="AteneumAPI">
+      <HintPath>..\..\PIOTR-API\AteneumAPI\bin\Debug\net6.0\AteneumAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="Libre API">
+      <HintPath>..\..\PIOTR-API\Libre API\bin\Debug\net6.0\Libre API.dll</HintPath>
     </Reference>
   </ItemGroup>
 
