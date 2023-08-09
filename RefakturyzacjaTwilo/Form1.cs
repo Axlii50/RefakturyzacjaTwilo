@@ -110,7 +110,6 @@ namespace RefakturyzacjaTwilo
                                 if (book == null)
                                 {
                                     workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
-
                                 }
                                 else
                                 {
@@ -122,13 +121,11 @@ namespace RefakturyzacjaTwilo
                             else if (item.offer.external.id.EndsWith("-2"))
                             {
                                 //ateneum
-
                                 var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
                                 if (book == null)
                                 {
                                     workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
-
                                 }
                                 else
                                 {
