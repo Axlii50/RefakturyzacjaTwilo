@@ -2,6 +2,7 @@ using Allegro_Api;
 using Allegro_Api.Models.Order.checkoutform;
 using OfficeOpenXml;
 using System.Diagnostics;
+using System.Text;
 
 namespace RefakturyzacjaTwilo
 {
@@ -51,25 +52,25 @@ namespace RefakturyzacjaTwilo
 
         private void GenerateTxt(ref List<CheckOutForm>? Orders, string path)
         {
-            string content = string.Empty;
+            StringBuilder content = new StringBuilder();
             foreach (var order in Orders ?? new List<CheckOutForm>())
             {
                 foreach (var item in order.lineItems)
                 {
                     DateTime intermediary = DateTime.Parse(item.boughtAt);
 
-                    content += item.offer.name;
-                    content += "\t";
-                    content += item.originalPrice.amount;
-                    content += "\t";
-                    content += intermediary;
-                    content += "\t";
-                    content += item.offer.external?.id;
-                    content += '\n';
-                    // System.Diagnostics.Debug.WriteLine(item.offer.external);
-                }
-            }
-            File.WriteAllText(path, content);
+                    string[] fields = {
+                        item.offer.name,
+                        item.originalPrice.amount.ToString(),
+                        intermediary.ToString(),
+                        item.offer.external?.id
+                    };
+
+                    content.AppendLine(string.Join("\t", fields)); // adds a new line with variables specified in fields (in that order), insert '\t' between them and '\n' at the end
+					// System.Diagnostics.Debug.WriteLine(item.offer.external);
+				}
+			}
+            File.WriteAllText(path, content.ToString());
         }
 
         private void GenerateXlsx(ref List<CheckOutForm>? Orders, string path, string timestamp)
@@ -107,7 +108,7 @@ namespace RefakturyzacjaTwilo
                                     workSheet.Cells[row, 5].Value = book.PriceNettoAferDiscount;
                                     workSheet.Cells[row, 6].Value = book.PriceBruttoAferDiscount;
                                     workSheet.Cells[row, 7].Value = book.Vat;
-                                } 
+                                }
 
                             }
                             else if ((bool)(item.offer.external.id.EndsWith("-2")))
@@ -229,7 +230,7 @@ namespace RefakturyzacjaTwilo
 
         private async void button2_Click(object sender, EventArgs e)
         {
-            
+
             System.Diagnostics.Debug.WriteLine("pobieram liber");
             liberBooks = await Program.LibreApi.GetAllBooks(0);
             System.Diagnostics.Debug.WriteLine("pobieram ateneum");
