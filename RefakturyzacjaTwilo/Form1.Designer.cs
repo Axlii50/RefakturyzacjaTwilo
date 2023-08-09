@@ -51,8 +51,8 @@
             dateTimePicker1.Name="dateTimePicker1";
             dateTimePicker1.Size=new Size(368, 39);
             dateTimePicker1.TabIndex=0;
-            dateTimePicker1.Value=new DateTime(2023, 7, 31, 0, 0, 0, 0);
-            dateTimePicker1.ValueChanged+=dateTimePicker1_ValueChanged;
+            dateTimePicker1.Value=new DateTime(2023, 8, 9, 0, 0, 0);
+			dateTimePicker1.ValueChanged+=dateTimePicker1_ValueChanged;
             // 
             // button1
             // 

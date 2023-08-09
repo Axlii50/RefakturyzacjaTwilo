@@ -1,6 +1,7 @@
 using Allegro_Api;
 using Allegro_Api.Models.Order.checkoutform;
 using OfficeOpenXml;
+using OfficeOpenXml.Table;
 using System.Diagnostics;
 using System.Text;
 
@@ -32,7 +33,7 @@ namespace RefakturyzacjaTwilo
             dateTimePicker1.Value = newDateTime;
         }
 
-        private async Task<List<CheckOutForm>?> DownloadOrdersAsync(DateTime input)
+		private async Task<List<CheckOutForm>?> DownloadOrdersAsync(DateTime input)
         {
             List<CheckOutForm>? Orders = null;
 
@@ -45,7 +46,7 @@ namespace RefakturyzacjaTwilo
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Wyst¹pi³ b³¹d: " + ex.Message, "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Wyst¹pi³ b³¹d przy pobieraniu zamówieñ z Allegro", "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -85,20 +86,28 @@ namespace RefakturyzacjaTwilo
                 var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
 
                 // IMPORTANT: const number of columns
-                const int NoOfColumns = 4;
-                int row = 1;
+                const int NoOfColumns = 7;
+                workSheet.Cells[1, 1].Value = "Nazwa oferty";
+                workSheet.Cells[1, 2].Value = "Cena pierwotna";
+                workSheet.Cells[1, 3].Value = "Data zakupu";
+                workSheet.Cells[1, 4].Value = "ID zamówienia";
+                workSheet.Cells[1, 5].Value = "Cena hurtowa brutto";
+                workSheet.Cells[1, 6].Value = "Cena hurtowa netto";
+                workSheet.Cells[1, 7].Value = "Stawka VAT";
+                int row = 2;
                 foreach (var order in Orders ?? new List<CheckOutForm>())
                 {
                     foreach (var item in order.lineItems)
                     {
                         if (item.offer.external != null)
-                            if ((bool)(item.offer.external.id.EndsWith("-1")))
+                        {
+							if (item.offer.external.id.EndsWith("-1"))
                             {
-                                //liber
+								//liber
 
                                 var book = liberBooks.Where(bk => bk.ID == item.offer.external.id.Replace("-1", "")).FirstOrDefault();
 
-                               if (book == null)
+                                if (book == null)
                                 {
                                     workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 
@@ -109,13 +118,12 @@ namespace RefakturyzacjaTwilo
                                     workSheet.Cells[row, 6].Value = book.PriceBruttoAferDiscount;
                                     workSheet.Cells[row, 7].Value = book.Vat;
                                 }
-
                             }
-                            else if ((bool)(item.offer.external.id.EndsWith("-2")))
+                            else if (item.offer.external.id.EndsWith("-2"))
                             {
                                 //ateneum
 
-                                var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2","")).FirstOrDefault();
+                                var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
                                 if (book == null)
                                 {
@@ -125,10 +133,11 @@ namespace RefakturyzacjaTwilo
                                 else
                                 {
                                     workSheet.Cells[row, 5].Value = book.PriceWholeSaleBrutto;
-                                    workSheet.Cells[row, 6].Value = book.PriceWholeSaleNetto;
-                                    workSheet.Cells[row, 7].Value = book.VAT;
+									workSheet.Cells[row, 6].Value = book.PriceWholeSaleNetto;
+									workSheet.Cells[row, 7].Value = book.BookData.stawka_vat;
                                 }
                             }
+                        }
 
                         // IMPORTANT: when parsing, DateTime converts dates to timezone of the computer running the app
                         DateTime intermediary = DateTime.Parse(item.boughtAt);
@@ -149,6 +158,14 @@ namespace RefakturyzacjaTwilo
                     workSheet.Column(i + 1).AutoFit();
                 }
 
+                string tableName = "Tabela";
+				int firstRow = 1;
+				int lastRow = workSheet.Dimension.End.Row;
+				int firstColumn = 1;
+				int lastColumn = workSheet.Dimension.End.Column;
+                ExcelRange tableRange = workSheet.Cells[firstRow, firstColumn, lastRow, lastColumn];
+                ExcelTable table = workSheet.Tables.Add(tableRange, tableName);
+
                 excel.SaveAs(path);
             }
         }
@@ -157,6 +174,8 @@ namespace RefakturyzacjaTwilo
         {
             // set default value in drop-down list (comboBox) to ".xslx"
             comboBox1.SelectedIndex = 1;
+
+            SetDateTimePicker1To00_00_00();
         }
         private async void button1_Click(object sender, EventArgs e)
         {
