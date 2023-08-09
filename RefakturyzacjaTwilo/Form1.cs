@@ -94,32 +94,27 @@ namespace RefakturyzacjaTwilo
                             if ((bool)(item.offer.external.id.EndsWith("-1")))
                             {
                                 //liber
-
                                 var book = liberBooks.Where(bk => bk.ID == item.offer.external.id.Replace("-1", "")).FirstOrDefault();
 
-                               if (book == null)
+                                if (book == null)
                                 {
                                     workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
-
                                 }
                                 else
                                 {
                                     workSheet.Cells[row, 5].Value = book.PriceNettoAferDiscount;
                                     workSheet.Cells[row, 6].Value = book.PriceBruttoAferDiscount;
                                     workSheet.Cells[row, 7].Value = book.Vat;
-                                } 
-
+                                }
                             }
                             else if ((bool)(item.offer.external.id.EndsWith("-2")))
                             {
                                 //ateneum
-
-                                var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2","")).FirstOrDefault();
+                                var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
                                 if (book == null)
                                 {
                                     workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
-
                                 }
                                 else
                                 {
