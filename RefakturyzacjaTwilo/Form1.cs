@@ -18,6 +18,25 @@ namespace RefakturyzacjaTwilo
 			InitializeComponent();
 		}
 
+		/// <summary>
+		/// Gets the offset in hours for converting UTC to Central European Time (CET) or Central European Summer Time (CEST) based on the DST status.
+		/// </summary>
+		/// <returns>Returns -1 (winter time) or -2 (summer time) which is the offset in hours</returns>
+		private int GetCentralEuropeanTimeOffset()
+		{
+			var zone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+			var centralTime = DateTime.UtcNow;
+
+			if (zone.IsDaylightSavingTime(centralTime))
+			{
+				return -2;
+			}
+			else
+			{
+				return -1;
+			}
+		}
+
 		private void SetDateTimePicker1To00_00_00()
 		{
 			// Get the selected date from the DateTimePicker
@@ -51,6 +70,7 @@ namespace RefakturyzacjaTwilo
 			}
 		}
 
+		[Obsolete("New updates are done only for GenerateXlsx(), it is advised to give up on .txt as a whole in the project and focus on .xslx")]
 		private void GenerateTxt(ref List<CheckOutForm>? Orders, string path)
 		{
 			StringBuilder content = new StringBuilder();
@@ -74,6 +94,12 @@ namespace RefakturyzacjaTwilo
 			File.WriteAllText(path, content.ToString());
 		}
 
+		/// <summary>
+		/// Generates .xlsx file (Excel), grouping provided data in table
+		/// </summary>
+		/// <param name="Orders"></param>
+		/// <param name="path"></param>
+		/// <param name="timestamp"></param>
 		private void GenerateXlsx(ref List<CheckOutForm>? Orders, string path, string timestamp)
 		{
 			// Excel license
@@ -84,27 +110,35 @@ namespace RefakturyzacjaTwilo
 			{
 				// name of the sheet
 				var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
+				var workSheet2 = excel.Workbook.Worksheets.Add("Orders--Ateneum" + timestamp);
+				var listOfSheets = new[] { workSheet, workSheet2 }.ToList();
 
 				// IMPORTANT: const number of columns
 				const int NoOfColumns = 7;
-				workSheet.Cells[1, 1].Value = "Nazwa oferty";
-				workSheet.Cells[1, 2].Value = "Cena pierwotna";
-				workSheet.Cells[1, 3].Value = "Data transakcji";
-				workSheet.Cells[1, 4].Value = "ID zamówienia";
-				workSheet.Cells[1, 5].Value = "Cena hurtowa brutto";
-				workSheet.Cells[1, 6].Value = "Cena hurtowa netto";
-				workSheet.Cells[1, 7].Value = "VAT";
+                foreach (var sheet in listOfSheets)
+                {
+					sheet.Cells[1, 1].Value = "Nazwa oferty";
+					sheet.Cells[1, 2].Value = "Cena pierwotna";
+					sheet.Cells[1, 3].Value = "Data transakcji";
+					sheet.Cells[1, 4].Value = "ID zamówienia";
+					sheet.Cells[1, 5].Value = "Cena hurtowa brutto";
+					sheet.Cells[1, 6].Value = "Cena hurtowa netto";
+					sheet.Cells[1, 7].Value = "VAT";
+				}
 				int row = 2;
 				foreach (var order in Orders ?? new List<CheckOutForm>())
 				{
 					foreach (var item in order.lineItems)
 					{
+						bool isLiber = false;
+						bool isAteneum = false;
 						if (item.offer.external != null)
 						{
 							if (item.offer.external.id.EndsWith("-1"))
 							{
 								//liber
-
+								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
+								isLiber = true;
 								var book = liberBooks.Where(bk => bk.ID == item.offer.external.id.Replace("-1", "")).FirstOrDefault();
 
 								if (book == null)
@@ -121,17 +155,19 @@ namespace RefakturyzacjaTwilo
 							else if (item.offer.external.id.EndsWith("-2"))
 							{
 								//ateneum
+								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
+								isAteneum = true;
 								var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
 								if (book == null)
 								{
-									workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
+									workSheet2.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 								}
 								else
 								{
-									workSheet.Cells[row, 5].Value = book.PriceWholeSaleBrutto;
-									workSheet.Cells[row, 6].Value = book.PriceWholeSaleNetto;
-									workSheet.Cells[row, 7].Value = book.BookData.stawka_vat;
+									workSheet2.Cells[row, 5].Value = book.PriceWholeSaleBrutto;
+									workSheet2.Cells[row, 6].Value = book.PriceWholeSaleNetto;
+									workSheet2.Cells[row, 7].Value = book.BookData.stawka_vat;
 								}
 							}
 						}
@@ -141,18 +177,29 @@ namespace RefakturyzacjaTwilo
 						string tmp = intermediary.ToString("G");
 
 						// System.Diagnostics.Debug.WriteLine(intermediary);
-
-						workSheet.Cells[row, 1].Value = item.offer.name;
-						workSheet.Cells[row, 2].Value = item.originalPrice.amount;
-						workSheet.Cells[row, 3].Value = tmp;
-						workSheet.Cells[row, 4].Value = item.offer.external?.id;
+						if (isLiber)
+						{
+							workSheet.Cells[row, 1].Value = item.offer.name;
+							workSheet.Cells[row, 2].Value = item.originalPrice.amount;
+							workSheet.Cells[row, 3].Value = tmp;
+							workSheet.Cells[row, 4].Value = item.offer.external?.id;
+						} else if (isAteneum)
+						{
+							workSheet2.Cells[row, 1].Value = item.offer.name;
+							workSheet2.Cells[row, 2].Value = item.originalPrice.amount;
+							workSheet2.Cells[row, 3].Value = tmp;
+							workSheet2.Cells[row, 4].Value = item.offer.external?.id;
+						}
 					}
 					++row;
 				}
 
-				for (int i = 0; i < NoOfColumns; ++i)
+				foreach (var sheet in listOfSheets)
 				{
-					workSheet.Column(i + 1).AutoFit();
+					for (int i = 0; i < NoOfColumns; ++i)
+					{
+						sheet.Column(i + 1).AutoFit();
+					}
 				}
 
 				string tableName = "Tabela";
@@ -171,8 +218,6 @@ namespace RefakturyzacjaTwilo
 		{
 			// set default value in drop-down list (comboBox) to ".xslx"
 			comboBox1.SelectedIndex = 1;
-
-			SetDateTimePicker1To00_00_00();
 		}
 		private async void button1_Click(object sender, EventArgs e)
 		{
@@ -180,7 +225,8 @@ namespace RefakturyzacjaTwilo
 
 			// time format must be in UTC for allegro
 			DateTime temp = new DateTime(this.dateTimePicker1.Value.Year, this.dateTimePicker1.Value.Month, this.dateTimePicker1.Value.Day);
-			temp = temp.AddHours(-2);
+			int offsetHours = GetCentralEuropeanTimeOffset(); // -2 if summer time and -1 if winter time
+			temp = temp.AddHours(offsetHours);
 			DateTime input = new DateTime(temp.Ticks, DateTimeKind.Utc);
 
 			System.Diagnostics.Debug.WriteLine(input.ToString());
@@ -228,9 +274,9 @@ namespace RefakturyzacjaTwilo
 			}
 
 			// displaying everything and visual settings
-			string dirPath = Path.Combine(Directory.GetCurrentDirectory(), @"Orders");
+			string dirPath = Path.Combine(Directory.GetCurrentDirectory(), "Orders");
 			label3.Visible = true;
-			label4.Text = "orders" + timestamp + ending;
+			label4.Text = $"orders{timestamp}{ending}";
 			label4.Visible = true;
 			label5.Visible = true;
 			linkLabel1.Text = dirPath;
