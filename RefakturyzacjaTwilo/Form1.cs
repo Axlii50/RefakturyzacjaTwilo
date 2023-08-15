@@ -177,19 +177,20 @@ namespace RefakturyzacjaTwilo
 						string tmp = intermediary.ToString("G");
 
 						// System.Diagnostics.Debug.WriteLine(intermediary);
-						if (isLiber)
-						{
-							workSheet.Cells[row, 1].Value = item.offer.name;
-							workSheet.Cells[row, 2].Value = item.originalPrice.amount;
-							workSheet.Cells[row, 3].Value = tmp;
-							workSheet.Cells[row, 4].Value = item.offer.external?.id;
-						} else if (isAteneum)
-						{
-							workSheet2.Cells[row, 1].Value = item.offer.name;
-							workSheet2.Cells[row, 2].Value = item.originalPrice.amount;
-							workSheet2.Cells[row, 3].Value = tmp;
-							workSheet2.Cells[row, 4].Value = item.offer.external?.id;
-						}
+						//if (isLiber)
+						//{
+						workSheet.Cells[row, 1].Value = item.offer.name;
+						workSheet.Cells[row, 2].Value = item.originalPrice.amount;
+						workSheet.Cells[row, 3].Value = tmp;
+						workSheet.Cells[row, 4].Value = item.offer.external?.id;
+						//}
+						//else if (isAteneum)
+						//{
+						//	workSheet2.Cells[row, 1].Value = item.offer.name;
+						//	workSheet2.Cells[row, 2].Value = item.originalPrice.amount;
+						//	workSheet2.Cells[row, 3].Value = tmp;
+						//	workSheet2.Cells[row, 4].Value = item.offer.external?.id;
+						//}
 					}
 					++row;
 				}
