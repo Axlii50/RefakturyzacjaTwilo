@@ -204,8 +204,8 @@ namespace RefakturyzacjaTwilo
 								}
 								else
 								{
-									currentSheet.Cells[row[0], 5].Value = book.PriceNettoAferDiscount;
-									currentSheet.Cells[row[0], 6].Value = book.PriceBruttoAferDiscount;
+									currentSheet.Cells[row[0], 5].Value = book.PriceBruttoAferDiscount;
+									currentSheet.Cells[row[0], 6].Value = book.PriceNettoAferDiscount;
 									currentSheet.Cells[row[0], 7].Value = book.Vat;
 								}
 								book = null;
