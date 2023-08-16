@@ -307,7 +307,7 @@ namespace RefakturyzacjaTwilo
 					GenerateTxt(ref Orders, path);
 					break;
 				case ".xlsx":
-				    GenerateXlsx(Orders, path, timestamp);
+				    await GenerateXlsx(Orders, path, timestamp);
 					break;
 			}
 
