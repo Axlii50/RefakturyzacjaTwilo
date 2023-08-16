@@ -95,6 +95,49 @@ namespace RefakturyzacjaTwilo
 		}
 
 		/// <summary>
+		/// Sets column headers in tables of .xlsx. Please, make sure to adjust variable NoOfColumns in correspondence with this function.
+		/// </summary>
+		/// <param name="listOfSheets"></param>
+		private void SetColumnHeadersInXlsx(ref List<OfficeOpenXml.ExcelWorksheet> listOfSheets)
+		{
+			foreach (var sheet in listOfSheets)
+			{
+				sheet.Cells[1, 2].Value = "Cena pierwotna";
+				sheet.Cells[1, 3].Value = "Data transakcji";
+				sheet.Cells[1, 4].Value = "ID zamówienia";
+				sheet.Cells[1, 5].Value = "Cena hurtowa brutto";
+				sheet.Cells[1, 6].Value = "Cena hurtowa netto";
+				sheet.Cells[1, 7].Value = "VAT";
+			}
+		}
+
+		/// <summary>
+		/// Makes a good-looking Excel table in each sheet.
+		/// </summary>
+		/// <param name="listOfSheets"></param>
+		/// <param name="NoOfColumns"></param>
+		private void MakeTableInEachSheet(ref List<OfficeOpenXml.ExcelWorksheet> listOfSheets, in int NoOfColumns)
+		{
+			int tableNumber = 1;
+			foreach (var sheet in listOfSheets)
+			{
+				for (int i = 0; i < NoOfColumns; ++i)
+				{
+					sheet.Column(i + 1).AutoFit();
+				}
+
+				string tableName = "Tabela" + tableNumber.ToString();
+				int firstRow = 1;
+				int lastRow = sheet.Dimension.End.Row;
+				int firstColumn = 1;
+				int lastColumn = sheet.Dimension.End.Column;
+				ExcelRange tableRange = sheet.Cells[firstRow, firstColumn, lastRow, lastColumn];
+				ExcelTable table = sheet.Tables.Add(tableRange, tableName);
+				++tableNumber;
+			}
+		}
+
+		/// <summary>
 		/// Generates .xlsx file (Excel), grouping provided data in table
 		/// </summary>
 		/// <param name="Orders"></param>
@@ -109,29 +152,23 @@ namespace RefakturyzacjaTwilo
 			using (ExcelPackage excel = new ExcelPackage()) // used with classes implementing IDisposable
 			{
 				// name of the sheet
-				var workSheet = excel.Workbook.Worksheets.Add("Orders" + timestamp);
+				var workSheet = excel.Workbook.Worksheets.Add("Orders--Liber" + timestamp);
 				var workSheet2 = excel.Workbook.Worksheets.Add("Orders--Ateneum" + timestamp);
-				var listOfSheets = new[] { workSheet, workSheet2 }.ToList();
+				var failoverWorkSheet = excel.Workbook.Worksheets.Add("Orders--FAILOVER" + timestamp);
+				var listOfSheets = new[] { workSheet, workSheet2, failoverWorkSheet }.ToList();
 
 				// IMPORTANT: const number of columns
 				const int NoOfColumns = 7;
-                foreach (var sheet in listOfSheets)
-                {
-					sheet.Cells[1, 1].Value = "Nazwa oferty";
-					sheet.Cells[1, 2].Value = "Cena pierwotna";
-					sheet.Cells[1, 3].Value = "Data transakcji";
-					sheet.Cells[1, 4].Value = "ID zamówienia";
-					sheet.Cells[1, 5].Value = "Cena hurtowa brutto";
-					sheet.Cells[1, 6].Value = "Cena hurtowa netto";
-					sheet.Cells[1, 7].Value = "VAT";
-				}
-				int row = 2;
+                SetColumnHeadersInXlsx(ref listOfSheets);
+				int[] row = new int[3] { 2, 2, 2 };
 				foreach (var order in Orders ?? new List<CheckOutForm>())
 				{
+					bool isLiber = false;
+					bool isAteneum = false;
 					foreach (var item in order.lineItems)
 					{
-						bool isLiber = false;
-						bool isAteneum = false;
+						isLiber = false;
+						isAteneum = false;
 						if (item.offer.external != null)
 						{
 							if (item.offer.external.id.EndsWith("-1"))
@@ -143,13 +180,13 @@ namespace RefakturyzacjaTwilo
 
 								if (book == null)
 								{
-									workSheet.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
+									workSheet.Cells[row[0], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 								}
 								else
 								{
-									workSheet.Cells[row, 5].Value = book.PriceNettoAferDiscount;
-									workSheet.Cells[row, 6].Value = book.PriceBruttoAferDiscount;
-									workSheet.Cells[row, 7].Value = book.Vat;
+									workSheet.Cells[row[0], 5].Value = book.PriceNettoAferDiscount;
+									workSheet.Cells[row[0], 6].Value = book.PriceBruttoAferDiscount;
+									workSheet.Cells[row[0], 7].Value = book.Vat;
 								}
 							}
 							else if (item.offer.external.id.EndsWith("-2"))
@@ -161,13 +198,13 @@ namespace RefakturyzacjaTwilo
 
 								if (book == null)
 								{
-									workSheet2.Cells[row, 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
+									workSheet2.Cells[row[1], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 								}
 								else
 								{
-									workSheet2.Cells[row, 5].Value = book.PriceWholeSaleBrutto;
-									workSheet2.Cells[row, 6].Value = book.PriceWholeSaleNetto;
-									workSheet2.Cells[row, 7].Value = book.BookData.stawka_vat;
+									workSheet2.Cells[row[1], 5].Value = book.PriceWholeSaleBrutto;
+									workSheet2.Cells[row[1], 6].Value = book.PriceWholeSaleNetto;
+									workSheet2.Cells[row[1], 7].Value = book.BookData.stawka_vat;
 								}
 							}
 						}
@@ -176,40 +213,41 @@ namespace RefakturyzacjaTwilo
 						DateTime intermediary = DateTime.Parse(item.boughtAt);
 						string tmp = intermediary.ToString("G");
 
-						// System.Diagnostics.Debug.WriteLine(intermediary);
-						//if (isLiber)
-						//{
-						workSheet.Cells[row, 1].Value = item.offer.name;
-						workSheet.Cells[row, 2].Value = item.originalPrice.amount;
-						workSheet.Cells[row, 3].Value = tmp;
-						workSheet.Cells[row, 4].Value = item.offer.external?.id;
-						//}
-						//else if (isAteneum)
-						//{
-						//	workSheet2.Cells[row, 1].Value = item.offer.name;
-						//	workSheet2.Cells[row, 2].Value = item.originalPrice.amount;
-						//	workSheet2.Cells[row, 3].Value = tmp;
-						//	workSheet2.Cells[row, 4].Value = item.offer.external?.id;
-						//}
+						if (isLiber)
+						{
+							workSheet.Cells[row[0], 1].Value = item.offer.name;
+							workSheet.Cells[row[0], 2].Value = item.originalPrice.amount;
+							workSheet.Cells[row[0], 3].Value = tmp;
+							workSheet.Cells[row[0], 4].Value = item.offer.external?.id;
+						}
+						else if (isAteneum)
+						{
+							workSheet2.Cells[row[1], 1].Value = item.offer.name;
+							workSheet2.Cells[row[1], 2].Value = item.originalPrice.amount;
+							workSheet2.Cells[row[1], 3].Value = tmp;
+							workSheet2.Cells[row[1], 4].Value = item.offer.external?.id;
+						}
+						else
+						{
+							failoverWorkSheet.Cells[row[row.Length-1], 1].Value = item.offer.name;
+							failoverWorkSheet.Cells[row[row.Length-1], 2].Value = item.originalPrice.amount;
+							failoverWorkSheet.Cells[row[row.Length-1], 3].Value = tmp;
+							failoverWorkSheet.Cells[row[row.Length-1], 4].Value = item.offer.external?.id;
+						}
 					}
-					++row;
-				}
-
-				foreach (var sheet in listOfSheets)
-				{
-					for (int i = 0; i < NoOfColumns; ++i)
+					if (isLiber)
 					{
-						sheet.Column(i + 1).AutoFit();
+						++row[0];
+					} else if (isAteneum)
+					{
+						++row[1];
+					} else
+					{
+						++row[2];
 					}
 				}
 
-				string tableName = "Tabela";
-				int firstRow = 1;
-				int lastRow = workSheet.Dimension.End.Row;
-				int firstColumn = 1;
-				int lastColumn = workSheet.Dimension.End.Column;
-				ExcelRange tableRange = workSheet.Cells[firstRow, firstColumn, lastRow, lastColumn];
-				ExcelTable table = workSheet.Tables.Add(tableRange, tableName);
+				MakeTableInEachSheet(ref listOfSheets, NoOfColumns);
 
 				excel.SaveAs(path);
 			}
