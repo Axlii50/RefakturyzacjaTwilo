@@ -102,9 +102,9 @@ namespace RefakturyzacjaTwilo
 		{
 			foreach (var sheet in listOfSheets)
 			{
-				sheet.Cells[1, 2].Value = "Cena pierwotna";
+				sheet.Cells[1, 2].Value = "Cena";
 				sheet.Cells[1, 3].Value = "Data transakcji";
-				sheet.Cells[1, 4].Value = "ID zamówienia";
+				sheet.Cells[1, 4].Value = "ID produktu";
 				sheet.Cells[1, 5].Value = "Cena hurtowa brutto";
 				sheet.Cells[1, 6].Value = "Cena hurtowa netto";
 				sheet.Cells[1, 7].Value = "VAT";
@@ -161,92 +161,76 @@ namespace RefakturyzacjaTwilo
 				const int NoOfColumns = 7;
                 SetColumnHeadersInXlsx(ref listOfSheets);
 				int[] row = new int[3] { 2, 2, 2 };
-				foreach (var order in Orders ?? new List<CheckOutForm>())
+				foreach (var order in Orders)
 				{
-					bool isLiber = false;
-					bool isAteneum = false;
 					foreach (var item in order.lineItems)
 					{
-						isLiber = false;
-						isAteneum = false;
+						var currentSheet = failoverWorkSheet;
+
+						// IMPORTANT: when parsing, DateTime converts dates to timezone of the computer running the app
+						DateTime intermediary = DateTime.Parse(item.boughtAt);
+						string tmp = intermediary.ToString("G");
 						if (item.offer.external != null)
 						{
 							if (item.offer.external.id.EndsWith("-1"))
 							{
 								//liber
+								currentSheet = workSheet;
 								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
-								isLiber = true;
 								var book = liberBooks.Where(bk => bk.ID == item.offer.external.id.Replace("-1", "")).FirstOrDefault();
 
+
+								currentSheet.Cells[row[0], 1].Value = item.offer.name;
+								currentSheet.Cells[row[0], 2].Value = item.originalPrice.amount;
+								currentSheet.Cells[row[0], 3].Value = tmp;
+								currentSheet.Cells[row[0], 4].Value = item.offer.external?.id;
 								if (book == null)
 								{
-									workSheet.Cells[row[0], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
+									currentSheet.Cells[row[0], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 								}
 								else
 								{
-									workSheet.Cells[row[0], 5].Value = book.PriceNettoAferDiscount;
-									workSheet.Cells[row[0], 6].Value = book.PriceBruttoAferDiscount;
-									workSheet.Cells[row[0], 7].Value = book.Vat;
+									currentSheet.Cells[row[0], 5].Value = book.PriceNettoAferDiscount;
+									currentSheet.Cells[row[0], 6].Value = book.PriceBruttoAferDiscount;
+									currentSheet.Cells[row[0], 7].Value = book.Vat;
 								}
+								++row[0];
 							}
 							else if (item.offer.external.id.EndsWith("-2"))
 							{
 								//ateneum
+								currentSheet = workSheet2;
 								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
-								isAteneum = true;
 								var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
+								currentSheet.Cells[row[1], 1].Value = item.offer.name;
+								currentSheet.Cells[row[1], 2].Value = item.originalPrice.amount;
+								currentSheet.Cells[row[1], 3].Value = tmp;
+								currentSheet.Cells[row[1], 4].Value = item.offer.external?.id;
 								if (book == null)
 								{
-									workSheet2.Cells[row[1], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
+									currentSheet.Cells[row[1], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
 								}
 								else
 								{
-									workSheet2.Cells[row[1], 5].Value = book.PriceWholeSaleBrutto;
-									workSheet2.Cells[row[1], 6].Value = book.PriceWholeSaleNetto;
-									workSheet2.Cells[row[1], 7].Value = book.BookData.stawka_vat;
+									currentSheet.Cells[row[1], 5].Value = book.PriceWholeSaleBrutto;
+									currentSheet.Cells[row[1], 6].Value = book.PriceWholeSaleNetto;
+									currentSheet.Cells[row[1], 7].Value = book.BookData.stawka_vat;
 								}
+								++row[1];
 							}
-						}
-
-						// IMPORTANT: when parsing, DateTime converts dates to timezone of the computer running the app
-						DateTime intermediary = DateTime.Parse(item.boughtAt);
-						string tmp = intermediary.ToString("G");
-
-						if (isLiber)
-						{
-							workSheet.Cells[row[0], 1].Value = item.offer.name;
-							workSheet.Cells[row[0], 2].Value = item.originalPrice.amount;
-							workSheet.Cells[row[0], 3].Value = tmp;
-							workSheet.Cells[row[0], 4].Value = item.offer.external?.id;
-						}
-						else if (isAteneum)
-						{
-							workSheet2.Cells[row[1], 1].Value = item.offer.name;
-							workSheet2.Cells[row[1], 2].Value = item.originalPrice.amount;
-							workSheet2.Cells[row[1], 3].Value = tmp;
-							workSheet2.Cells[row[1], 4].Value = item.offer.external?.id;
 						}
 						else
 						{
-							failoverWorkSheet.Cells[row[row.Length-1], 1].Value = item.offer.name;
-							failoverWorkSheet.Cells[row[row.Length-1], 2].Value = item.originalPrice.amount;
-							failoverWorkSheet.Cells[row[row.Length-1], 3].Value = tmp;
-							failoverWorkSheet.Cells[row[row.Length-1], 4].Value = item.offer.external?.id;
+							failoverWorkSheet.Cells[row[row.Length - 1], 1].Value = item.offer.name;
+							failoverWorkSheet.Cells[row[row.Length - 1], 2].Value = item.originalPrice.amount;
+							failoverWorkSheet.Cells[row[row.Length - 1], 3].Value = tmp;
+							failoverWorkSheet.Cells[row[row.Length - 1], 4].Value = item.offer.external?.id;
+							++row[2];
 						}
 					}
-					if (isLiber)
-					{
-						++row[0];
-					} else if (isAteneum)
-					{
-						++row[1];
-					} else
-					{
-						++row[2];
-					}
-				}
 
+				}
 				MakeTableInEachSheet(ref listOfSheets, NoOfColumns);
 
 				excel.SaveAs(path);
