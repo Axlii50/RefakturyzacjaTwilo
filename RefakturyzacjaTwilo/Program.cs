@@ -21,7 +21,7 @@ namespace RefakturyzacjaTwilo
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
-        [STAThread]
+        [MTAThread]
 		static void Main()
 		{
             string LibreLogin = "38103_2345";

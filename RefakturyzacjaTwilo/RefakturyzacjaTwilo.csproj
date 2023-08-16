@@ -16,13 +16,13 @@
 
   <ItemGroup>
     <Reference Include="Allegro Api">
-      <HintPath>..\..\PIOTR-API\Allegro Api\bin\Debug\net6.0\Allegro Api.dll</HintPath>
+      <HintPath>..\..\..\Arek\Dla pana piotra\Allegro Api\Allegro Api\bin\Debug\net6.0\Allegro Api.dll</HintPath>
     </Reference>
     <Reference Include="AteneumAPI">
-      <HintPath>..\..\PIOTR-API\AteneumAPI\bin\Debug\net6.0\AteneumAPI.dll</HintPath>
+      <HintPath>..\..\..\Arek\Dla pana piotra\Allegro Api\AteneumAPI\bin\Debug\net6.0\AteneumAPI.dll</HintPath>
     </Reference>
     <Reference Include="Libre API">
-      <HintPath>..\..\PIOTR-API\Libre API\bin\Debug\net6.0\Libre API.dll</HintPath>
+      <HintPath>..\..\..\Arek\Dla pana piotra\Allegro Api\Libre API\bin\Debug\net6.0\Libre API.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -12,7 +12,6 @@ namespace RefakturyzacjaTwilo
 		List<Libre_API.Book> liberBooks = null;
 		List<AteneumAPI.Book> ateneumBooks = null;
 
-
 		public Form1()
 		{
 			InitializeComponent();
@@ -61,14 +60,26 @@ namespace RefakturyzacjaTwilo
 				Orders = await Program._allegroApi.GetOrders(input, OrderStatusType.PICKED_UP);
 				Orders.AddRange(await Program._allegroApi.GetOrders(input, OrderStatusType.SENT));
 				System.Diagnostics.Debug.WriteLine(Orders.Count);
-				return Orders;
+				
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show("Wyst¹pi³ b³¹d przy pobieraniu zamówieñ z Allegro", "B³¹d", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return null;
 			}
-		}
+
+			
+            //previously there were display glitches
+            //this ensures that specific code is executed on the main thread (which solves problem which UI in asynch method since it delegates execution of some code to main thread)
+
+            label2.Invoke(() =>
+            {
+                label2.Text = Orders?.Count.ToString();
+                label2.Font = new Font("Segoe UI", Form1.DefaultFont.Size, FontStyle.Regular);
+            });
+			
+			return Orders;
+        }
 
 		[Obsolete("New updates are done only for GenerateXlsx(), it is advised to give up on .txt as a whole in the project and focus on .xslx")]
 		private void GenerateTxt(ref List<CheckOutForm>? Orders, string path)
@@ -102,6 +113,7 @@ namespace RefakturyzacjaTwilo
 		{
 			foreach (var sheet in listOfSheets)
 			{
+				sheet.Cells[1, 1].Value = "Nazwa";
 				sheet.Cells[1, 2].Value = "Cena";
 				sheet.Cells[1, 3].Value = "Data transakcji";
 				sheet.Cells[1, 4].Value = "ID produktu";
@@ -143,7 +155,7 @@ namespace RefakturyzacjaTwilo
 		/// <param name="Orders"></param>
 		/// <param name="path"></param>
 		/// <param name="timestamp"></param>
-		private void GenerateXlsx(ref List<CheckOutForm>? Orders, string path, string timestamp)
+		private async Task GenerateXlsx(List<CheckOutForm>? Orders, string path, string timestamp)
 		{
 			// Excel license
 			// WARNING: check if the specified license is correct
@@ -155,6 +167,7 @@ namespace RefakturyzacjaTwilo
 				var workSheet = excel.Workbook.Worksheets.Add("Orders--Liber" + timestamp);
 				var workSheet2 = excel.Workbook.Worksheets.Add("Orders--Ateneum" + timestamp);
 				var failoverWorkSheet = excel.Workbook.Worksheets.Add("Orders--FAILOVER" + timestamp);
+
 				var listOfSheets = new[] { workSheet, workSheet2, failoverWorkSheet }.ToList();
 
 				// IMPORTANT: const number of columns
@@ -165,25 +178,26 @@ namespace RefakturyzacjaTwilo
 				{
 					foreach (var item in order.lineItems)
 					{
+						//worksheet that we will do work 
 						var currentSheet = failoverWorkSheet;
 
 						// IMPORTANT: when parsing, DateTime converts dates to timezone of the computer running the app
-						DateTime intermediary = DateTime.Parse(item.boughtAt);
-						string tmp = intermediary.ToString("G");
+						string tmp = DateTime.Parse(item.boughtAt).ToString("G");
+
 						if (item.offer.external != null)
 						{
 							if (item.offer.external.id.EndsWith("-1"))
 							{
 								//liber
 								currentSheet = workSheet;
-								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
+								//System.Diagnostics.Debug.WriteLine(item.offer.external.id);
 								var book = liberBooks.Where(bk => bk.ID == item.offer.external.id.Replace("-1", "")).FirstOrDefault();
-
 
 								currentSheet.Cells[row[0], 1].Value = item.offer.name;
 								currentSheet.Cells[row[0], 2].Value = item.originalPrice.amount;
 								currentSheet.Cells[row[0], 3].Value = tmp;
 								currentSheet.Cells[row[0], 4].Value = item.offer.external?.id;
+
 								if (book == null)
 								{
 									currentSheet.Cells[row[0], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
@@ -194,19 +208,21 @@ namespace RefakturyzacjaTwilo
 									currentSheet.Cells[row[0], 6].Value = book.PriceBruttoAferDiscount;
 									currentSheet.Cells[row[0], 7].Value = book.Vat;
 								}
+								book = null;
 								++row[0];
 							}
 							else if (item.offer.external.id.EndsWith("-2"))
 							{
 								//ateneum
 								currentSheet = workSheet2;
-								System.Diagnostics.Debug.WriteLine(item.offer.external.id);
+								//System.Diagnostics.Debug.WriteLine(item.offer.external.id);
 								var book = ateneumBooks.Where(bk => bk.ident_ate == item.offer.external.id.Replace("-2", "")).FirstOrDefault();
 
 								currentSheet.Cells[row[1], 1].Value = item.offer.name;
 								currentSheet.Cells[row[1], 2].Value = item.originalPrice.amount;
 								currentSheet.Cells[row[1], 3].Value = tmp;
 								currentSheet.Cells[row[1], 4].Value = item.offer.external?.id;
+
 								if (book == null)
 								{
 									currentSheet.Cells[row[1], 5].Value = "Brak mozliwosci uzupe³nienia brutto/netto/vat";
@@ -217,7 +233,8 @@ namespace RefakturyzacjaTwilo
 									currentSheet.Cells[row[1], 6].Value = book.PriceWholeSaleNetto;
 									currentSheet.Cells[row[1], 7].Value = book.BookData.stawka_vat;
 								}
-								++row[1];
+                                book = null;
+                                ++row[1];
 							}
 						}
 						else
@@ -229,7 +246,6 @@ namespace RefakturyzacjaTwilo
 							++row[2];
 						}
 					}
-
 				}
 				MakeTableInEachSheet(ref listOfSheets, NoOfColumns);
 
@@ -242,6 +258,12 @@ namespace RefakturyzacjaTwilo
 			// set default value in drop-down list (comboBox) to ".xslx"
 			comboBox1.SelectedIndex = 1;
 		}
+
+		/// <summary>
+		/// download all orders and start processing 
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private async void button1_Click(object sender, EventArgs e)
 		{
 			button1.Enabled = false;
@@ -271,13 +293,6 @@ namespace RefakturyzacjaTwilo
 				return;
 			}
 
-			//previously there were display glitches
-			//this ensures that specific code is executed on the main thread (which solves problem which UI in asynch method since it delegates execution of some code to main thread)
-			label2.Invoke(new Action(() =>
-			{
-				label2.Text = length;
-				label2.Font = new Font("Segoe UI", Form1.DefaultFont.Size, FontStyle.Regular);
-			}));
 			#endregion
 
 			//set date format
@@ -292,7 +307,7 @@ namespace RefakturyzacjaTwilo
 					GenerateTxt(ref Orders, path);
 					break;
 				case ".xlsx":
-					GenerateXlsx(ref Orders, path, timestamp);
+				    GenerateXlsx(Orders, path, timestamp);
 					break;
 			}
 
